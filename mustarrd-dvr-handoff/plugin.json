@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "description": "Hands Dispatcharr DVR recordings on catch-up channels to Mustarrd one hour before airtime, with fail-safe verification before removing the native Dispatcharr recording.",
   "author": "matrix2669",
+  "license": "MIT",
+  "repo_url": "https://github.com/matrix2669/Dispatcharr-Mustarrd-Plugin",
+  "help_url": "https://github.com/matrix2669/Dispatcharr-Mustarrd-Plugin",
+  "min_dispatcharr_version": "v0.29.0",
   "fields": [
     {
       "id": "_about",
