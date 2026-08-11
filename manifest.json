@@ -11,7 +11,7 @@
       "repo_url": "https://github.com/matrix2669/Dispatcharr-Mustarrd-Plugin",
       "latest_version": "0.1.0",
       "manifest_url": "https://raw.githubusercontent.com/matrix2669/Dispatcharr-Mustarrd-Plugin/main/metadata/mustarrd-dvr-handoff/manifest.json",
-      "latest_url": "https://github.com/matrix2669/Dispatcharr-Mustarrd-Plugin/archive/c72a08c291a58b3ae286ceb1224de8859fc034e1.zip",
+      "latest_url": "https://github.com/matrix2669/Dispatcharr-Mustarrd-Plugin/archive/refs/heads/v0.1.0.zip",
       "min_dispatcharr_version": "v0.29.0"
     }
   ]
