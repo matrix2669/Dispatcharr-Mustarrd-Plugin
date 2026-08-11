@@ -1,0 +1,108 @@
+{
+  "name": "Mustarrd DVR Handoff",
+  "version": "0.1.0",
+  "description": "Hands Dispatcharr DVR recordings on catch-up channels to Mustarrd one hour before airtime, with fail-safe verification before removing the native Dispatcharr recording.",
+  "author": "matrix2669",
+  "fields": [
+    {
+      "id": "_about",
+      "label": "Mustarrd DVR Handoff",
+      "type": "info",
+      "description": "Catch-up channels are handed to Mustarrd shortly before airtime. Non-catch-up channels are ignored and continue to record with Dispatcharr. A Dispatcharr recording is removed only after the corresponding Mustarrd schedule is verified."
+    },
+    {
+      "id": "mustarrd_url",
+      "label": "Mustarrd URL",
+      "type": "string",
+      "default": "http://mustarrd:4177",
+      "placeholder": "http://mustarrd:4177",
+      "help_text": "Base URL reachable from the Dispatcharr container."
+    },
+    {
+      "id": "mustarrd_username",
+      "label": "Mustarrd Username",
+      "type": "string",
+      "default": "",
+      "help_text": "Use a dedicated Mustarrd user. A download-only user is sufficient when this plugin owns the schedules it creates."
+    },
+    {
+      "id": "mustarrd_password",
+      "label": "Mustarrd Password",
+      "type": "string",
+      "input_type": "password",
+      "default": ""
+    },
+    {
+      "id": "mustarrd_account_id",
+      "label": "Mustarrd Dispatcharr Account ID",
+      "type": "number",
+      "default": 1,
+      "help_text": "Mustarrd account that points to Dispatcharr's Xtream output. Dispatcharr channel IDs map directly to Xtream stream IDs."
+    },
+    {
+      "id": "handoff_minutes",
+      "label": "Handoff Before Airtime (minutes)",
+      "type": "number",
+      "default": 60,
+      "help_text": "The plugin begins trying to hand off a catch-up recording this many minutes before its Dispatcharr start time."
+    },
+    {
+      "id": "handoff_cron",
+      "label": "Handoff Check Schedule (cron)",
+      "type": "string",
+      "default": "* * * * *",
+      "help_text": "5-field cron. The default checks once per minute so the handoff occurs close to T-60."
+    },
+    {
+      "id": "dry_run",
+      "label": "Dry Run",
+      "type": "boolean",
+      "default": false,
+      "help_text": "When enabled, evaluate and report what would be handed off without creating Mustarrd schedules or deleting Dispatcharr recordings."
+    }
+  ],
+  "actions": [
+    {
+      "id": "test_connection",
+      "label": "Test Mustarrd",
+      "description": "Authenticate and verify the configured Mustarrd account and its catch-up channel list.",
+      "button_label": "Test"
+    },
+    {
+      "id": "run_now",
+      "label": "Run Handoff Check Now",
+      "description": "Run the same handoff pass used by the cron task.",
+      "button_label": "Run Now",
+      "button_variant": "filled",
+      "button_color": "blue"
+    },
+    {
+      "id": "apply_schedule",
+      "label": "Apply / Update Cron Schedule",
+      "description": "Register or update the periodic handoff task in Celery Beat.",
+      "button_label": "Apply",
+      "button_variant": "outline",
+      "button_color": "blue"
+    },
+    {
+      "id": "schedule_status",
+      "label": "Show Cron Status",
+      "description": "Show the registered cron expression and recent run state.",
+      "button_label": "Status",
+      "button_variant": "outline"
+    },
+    {
+      "id": "remove_schedule",
+      "label": "Remove Cron Schedule",
+      "description": "Stop automatic handoff checks. Existing Mustarrd and Dispatcharr schedules are not changed.",
+      "button_label": "Remove",
+      "button_variant": "outline",
+      "button_color": "orange",
+      "confirm": {
+        "required": true,
+        "title": "Remove automatic handoff schedule?",
+        "message": "Automatic Mustarrd handoffs will stop until the cron schedule is applied again."
+      }
+    }
+  ]
+}
