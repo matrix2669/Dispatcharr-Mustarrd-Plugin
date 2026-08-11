@@ -1,6 +1,6 @@
 {
   "name": "Mustarrd DVR Handoff",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Mirrors Dispatcharr DVR recordings on catch-up channels to Mustarrd up to 72 hours ahead, then performs a final verified handoff before airtime.",
   "author": "matrix2669",
   "license": "MIT",
@@ -69,28 +69,28 @@
       "label": "TV Filename Template",
       "type": "string",
       "default": "TV Shows/{show} {tmdb}/Season {season:02d}/{show} - S{season:02d}E{episode:02d} - {title}",
-      "help_text": "Available tags: {show}, {season}, {episode}, {title}, {date}, {channel}, {tmdb}, {tmdb_id}, {tvdb_id}, {imdb_id}. {tmdb} expands to Plex and Jellyfin tags."
+      "help_text": "Available tags: {show}, {season}, {episode}, {title}, {date}, {channel}, {tmdb}, {tmdb_id}, {tvdb_id}, {imdb_id}. {tmdb} expands to Plex and Jellyfin tags. Do not include a file extension; Mustarrd appends .ts."
     },
     {
       "id": "movie_template",
       "label": "Movie Filename Template",
       "type": "string",
-      "default": "{title} ({year}) {tmdb}",
-      "help_text": "Available tags: {title}, {year}, {date}, {channel}, {tmdb}, {tmdb_id}, {tvdb_id}, {imdb_id}."
+      "default": "Movies/{title} ({year}) {tmdb}/{title} ({year})",
+      "help_text": "Available tags: {title}, {year}, {date}, {channel}, {tmdb}, {tmdb_id}, {tvdb_id}, {imdb_id}. Do not include a file extension; Mustarrd appends .ts."
     },
     {
       "id": "sports_template",
       "label": "Sports Filename Template",
       "type": "string",
-      "default": "{title} - {date}",
-      "help_text": "Available tags: {title}, {date}, {channel}, {tmdb}, {tmdb_id}, {tvdb_id}, {imdb_id}."
+      "default": "Sports/{title} - {date}",
+      "help_text": "Available tags: {title}, {date}, {channel}, {tmdb}, {tmdb_id}, {tvdb_id}, {imdb_id}. Do not include a file extension; Mustarrd appends .ts."
     },
     {
       "id": "default_template",
       "label": "Default Filename Template",
       "type": "string",
-      "default": "{title} - {date}",
-      "help_text": "Used when the program is not classified as TV, movie, or sports."
+      "default": "Other/{title} - {date}",
+      "help_text": "Used when the program is not classified as TV, movie, or sports. Do not include a file extension; Mustarrd appends .ts."
     },
     {
       "id": "dry_run",
