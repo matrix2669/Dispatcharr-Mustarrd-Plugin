@@ -1,7 +1,7 @@
 {
   "name": "Mustarrd DVR Handoff",
-  "version": "0.1.0",
-  "description": "Hands Dispatcharr DVR recordings on catch-up channels to Mustarrd one hour before airtime, with fail-safe verification before removing the native Dispatcharr recording.",
+  "version": "0.2.0",
+  "description": "Mirrors Dispatcharr DVR recordings on catch-up channels to Mustarrd up to 72 hours ahead, then performs a final verified handoff before airtime.",
   "author": "matrix2669",
   "license": "MIT",
   "repo_url": "https://github.com/matrix2669/Dispatcharr-Mustarrd-Plugin",
@@ -12,7 +12,7 @@
       "id": "_about",
       "label": "Mustarrd DVR Handoff",
       "type": "info",
-      "description": "Catch-up channels are handed to Mustarrd shortly before airtime. Non-catch-up channels are ignored and continue to record with Dispatcharr. A Dispatcharr recording is removed only after the corresponding Mustarrd schedule is verified."
+      "description": "Catch-up recordings are mirrored to Mustarrd in advance while Dispatcharr remains the fallback DVR. Inside the final handoff window, the plugin confirms Mustarrd still sees the channel as catch-up capable and verifies the Mustarrd schedule before deleting the Dispatcharr recording."
     },
     {
       "id": "mustarrd_url",
@@ -27,7 +27,7 @@
       "label": "Mustarrd Username",
       "type": "string",
       "default": "",
-      "help_text": "Use a dedicated Mustarrd user. A download-only user is sufficient when this plugin owns the schedules it creates."
+      "help_text": "Use a dedicated Mustarrd user. A download-only user is sufficient."
     },
     {
       "id": "mustarrd_password",
@@ -41,41 +41,76 @@
       "label": "Mustarrd Dispatcharr Account ID",
       "type": "number",
       "default": 1,
-      "help_text": "Mustarrd account that points to Dispatcharr's Xtream output. Dispatcharr channel IDs map directly to Xtream stream IDs."
+      "help_text": "Mustarrd account that points to Dispatcharr's Xtream output. Dispatcharr Channel.id maps directly to the Xtream stream ID used by Mustarrd."
+    },
+    {
+      "id": "mirror_hours",
+      "label": "Mirror Ahead (hours)",
+      "type": "number",
+      "default": 72,
+      "help_text": "Catch-up-capable Dispatcharr recordings this far in the future are mirrored into Mustarrd while the Dispatcharr recording remains scheduled."
     },
     {
       "id": "handoff_minutes",
-      "label": "Handoff Before Airtime (minutes)",
+      "label": "Final Handoff Before Airtime (minutes)",
       "type": "number",
       "default": 60,
-      "help_text": "The plugin begins trying to hand off a catch-up recording this many minutes before its Dispatcharr start time."
+      "help_text": "Inside this window the plugin confirms Mustarrd currently sees the channel as catch-up capable and verifies the schedule before removing the Dispatcharr recording."
     },
     {
       "id": "handoff_cron",
-      "label": "Handoff Check Schedule (cron)",
+      "label": "Mirror / Handoff Check Schedule (cron)",
       "type": "string",
-      "default": "* * * * *",
-      "help_text": "5-field cron. The default checks once per minute so the handoff occurs close to T-60."
+      "default": "*/5 * * * *",
+      "help_text": "5-field cron. The default checks every 5 minutes."
+    },
+    {
+      "id": "tv_template",
+      "label": "TV Filename Template",
+      "type": "string",
+      "default": "TV Shows/{show} {tmdb}/Season {season:02d}/{show} - S{season:02d}E{episode:02d} - {title}",
+      "help_text": "Available tags: {show}, {season}, {episode}, {title}, {date}, {channel}, {tmdb}, {tmdb_id}, {tvdb_id}, {imdb_id}. {tmdb} expands to Plex and Jellyfin tags."
+    },
+    {
+      "id": "movie_template",
+      "label": "Movie Filename Template",
+      "type": "string",
+      "default": "{title} ({year}) {tmdb}",
+      "help_text": "Available tags: {title}, {year}, {date}, {channel}, {tmdb}, {tmdb_id}, {tvdb_id}, {imdb_id}."
+    },
+    {
+      "id": "sports_template",
+      "label": "Sports Filename Template",
+      "type": "string",
+      "default": "{title} - {date}",
+      "help_text": "Available tags: {title}, {date}, {channel}, {tmdb}, {tmdb_id}, {tvdb_id}, {imdb_id}."
+    },
+    {
+      "id": "default_template",
+      "label": "Default Filename Template",
+      "type": "string",
+      "default": "{title} - {date}",
+      "help_text": "Used when the program is not classified as TV, movie, or sports."
     },
     {
       "id": "dry_run",
       "label": "Dry Run",
       "type": "boolean",
       "default": false,
-      "help_text": "When enabled, evaluate and report what would be handed off without creating Mustarrd schedules or deleting Dispatcharr recordings."
+      "help_text": "Evaluate and report mirroring/handoff decisions without creating Mustarrd schedules or deleting Dispatcharr recordings."
     }
   ],
   "actions": [
     {
       "id": "test_connection",
       "label": "Test Mustarrd",
-      "description": "Authenticate and verify the configured Mustarrd account and its catch-up channel list.",
+      "description": "Authenticate to Mustarrd and verify schedule API access.",
       "button_label": "Test"
     },
     {
       "id": "run_now",
-      "label": "Run Handoff Check Now",
-      "description": "Run the same handoff pass used by the cron task.",
+      "label": "Run Mirror / Handoff Check Now",
+      "description": "Run the same mirror and final-handoff pass used by the cron task.",
       "button_label": "Run Now",
       "button_variant": "filled",
       "button_color": "blue"
@@ -83,7 +118,7 @@
     {
       "id": "apply_schedule",
       "label": "Apply / Update Cron Schedule",
-      "description": "Register or update the periodic handoff task in Celery Beat.",
+      "description": "Register or update the periodic mirror/handoff task in Celery Beat.",
       "button_label": "Apply",
       "button_variant": "outline",
       "button_color": "blue"
@@ -98,14 +133,14 @@
     {
       "id": "remove_schedule",
       "label": "Remove Cron Schedule",
-      "description": "Stop automatic handoff checks. Existing Mustarrd and Dispatcharr schedules are not changed.",
+      "description": "Stop automatic mirror/handoff checks. Existing Mustarrd and Dispatcharr schedules are not changed.",
       "button_label": "Remove",
       "button_variant": "outline",
       "button_color": "orange",
       "confirm": {
         "required": true,
-        "title": "Remove automatic handoff schedule?",
-        "message": "Automatic Mustarrd handoffs will stop until the cron schedule is applied again."
+        "title": "Remove automatic mirror/handoff schedule?",
+        "message": "Automatic Mustarrd mirroring and handoffs will stop until the cron schedule is applied again."
       }
     }
   ]
