@@ -17,13 +17,15 @@ Manual time recordings on catch-up channels are handed off as an exact synthetic
 
 ## Install
 
-Add this repository to Dispatcharr's Plugin Repositories using:
+Add the central plugin registry to Dispatcharr:
 
 ```text
-https://raw.githubusercontent.com/matrix2669/Dispatcharr-Mustarrd-Plugin/main/manifest.json
+https://raw.githubusercontent.com/matrix2669/dispatcharr-plugins/main/manifest.json
 ```
 
 Then install **Mustarrd DVR Handoff** from the Plugin Hub.
+
+Plugin source and releases remain in `matrix2669/Dispatcharr-Mustarrd-Plugin`; registry/version metadata is maintained separately in `matrix2669/dispatcharr-plugins`.
 
 ## Mustarrd account
 
