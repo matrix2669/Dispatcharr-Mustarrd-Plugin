@@ -1,0 +1,30 @@
+{
+  "slug": "mustarrd-dvr-handoff",
+  "name": "Mustarrd DVR Handoff",
+  "description": "Hands Dispatcharr DVR recordings on catch-up channels to Mustarrd one hour before airtime, with fail-safe verification before removing the native Dispatcharr recording.",
+  "author": "matrix2669",
+  "license": "MIT",
+  "repo_url": "https://github.com/matrix2669/Dispatcharr-Mustarrd-Plugin",
+  "registry_name": "Matrix2669 Plugins",
+  "registry_url": "https://github.com/matrix2669/Dispatcharr-Mustarrd-Plugin",
+  "latest_version": "0.1.0",
+  "latest": {
+    "version": "0.1.0",
+    "url": "https://github.com/matrix2669/Dispatcharr-Mustarrd-Plugin/archive/c72a08c291a58b3ae286ceb1224de8859fc034e1.zip",
+    "latest_url": "https://github.com/matrix2669/Dispatcharr-Mustarrd-Plugin/archive/c72a08c291a58b3ae286ceb1224de8859fc034e1.zip",
+    "commit_sha": "c72a08c291a58b3ae286ceb1224de8859fc034e1",
+    "commit_sha_short": "c72a08c",
+    "build_timestamp": "2026-08-11T22:19:00Z",
+    "min_dispatcharr_version": "v0.29.0"
+  },
+  "versions": [
+    {
+      "version": "0.1.0",
+      "url": "https://github.com/matrix2669/Dispatcharr-Mustarrd-Plugin/archive/c72a08c291a58b3ae286ceb1224de8859fc034e1.zip",
+      "commit_sha": "c72a08c291a58b3ae286ceb1224de8859fc034e1",
+      "commit_sha_short": "c72a08c",
+      "build_timestamp": "2026-08-11T22:19:00Z",
+      "min_dispatcharr_version": "v0.29.0"
+    }
+  ]
+}
