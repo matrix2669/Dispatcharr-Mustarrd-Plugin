@@ -2,6 +2,34 @@
 
 This plugin uses Dispatcharr as the DVR/series-pass UI and Mustarrd as the recorder for channels that support catch-up.
 
+## Add this repository to Dispatcharr
+
+Add this manifest URL under Dispatcharr's **Plugin Repositories**:
+
+```text
+https://raw.githubusercontent.com/matrix2669/Dispatcharr-Mustarrd-Plugin/main/manifest.json
+```
+
+Dispatcharr will discover **Mustarrd DVR Handoff** from that repository and install it through the Plugins UI.
+
+The repository uses Dispatcharr's two-level manifest format:
+
+- `manifest.json` is the repository index and advertises the current `latest_version`.
+- `metadata/mustarrd-dvr-handoff/manifest.json` stores the plugin version history.
+- Each published plugin version is pinned to an immutable `vX.Y.Z` branch and downloaded through GitHub's versioned `zipball` endpoint.
+
+When a newer `latest_version` is published, Dispatcharr can detect it and offer the update in the Plugins UI.
+
+## Source layout
+
+The installable plugin lives under:
+
+```text
+mustarrd-dvr-handoff/
+```
+
+Keeping `plugin.py` under a fixed directory gives Dispatcharr a stable plugin key across GitHub-generated ZIP archives.
+
 ## Default flow
 
 1. Dispatcharr creates its normal future `Recording` rows from **Record**, **Record Series**, or other DVR rules.
@@ -21,16 +49,6 @@ This plugin uses Dispatcharr as the DVR/series-pass UI and Mustarrd as the recor
 8. If any step fails, the Dispatcharr recording is left untouched and the next cron run tries again. If Mustarrd never becomes healthy before airtime, Dispatcharr remains the fallback recorder.
 
 Manual time recordings on catch-up channels are handed off as an exact synthetic time window. EPG-backed recordings that cannot be matched confidently are kept in Dispatcharr rather than risking the wrong Mustarrd program.
-
-## Install
-
-Extract/copy this directory to:
-
-```text
-/app/data/plugins/mustarrd-dvr-handoff/
-```
-
-Then open Dispatcharr **Plugins**, refresh discovery, enable **Mustarrd DVR Handoff**, and configure it.
 
 ## Mustarrd account
 
@@ -52,12 +70,13 @@ A dedicated Mustarrd **download-only** user is sufficient if the plugin owns the
 
 ## First setup
 
-1. Save the Mustarrd URL, username/password, and Dispatcharr account ID.
-2. Click **Test Mustarrd**.
-3. Optional: enable **Dry Run**, then click **Run Handoff Check Now** while a catch-up DVR item is inside the handoff window.
-4. Disable Dry Run.
-5. Click **Apply / Update Cron Schedule**.
-6. Use **Show Cron Status** to confirm Beat has begun running it.
+1. Install the plugin from the repository above and enable it.
+2. Save the Mustarrd URL, username/password, and Dispatcharr account ID.
+3. Click **Test Mustarrd**.
+4. Optional: enable **Dry Run**, then click **Run Handoff Check Now** while a catch-up DVR item is inside the handoff window.
+5. Disable Dry Run.
+6. Click **Apply / Update Cron Schedule**.
+7. Use **Show Cron Status** to confirm Beat has begun running it.
 
 Default cron:
 
@@ -70,6 +89,19 @@ Default handoff window:
 ```text
 60 minutes before Dispatcharr recording start
 ```
+
+## Publishing a new version
+
+For a new version such as `0.2.0`:
+
+1. Update `mustarrd-dvr-handoff/plugin.py` and `mustarrd-dvr-handoff/plugin.json`.
+2. Set the plugin version to `0.2.0` in both the class metadata and `plugin.json`.
+3. Commit the release source.
+4. Create an immutable branch named `v0.2.0` at that release commit.
+5. Add a `0.2.0` entry to `metadata/mustarrd-dvr-handoff/manifest.json` and move its `latest` / `latest_version` to `0.2.0`.
+6. Update root `manifest.json` so `latest_version` and `latest_url` point to `v0.2.0`.
+
+Existing Dispatcharr installations using this repository will then see the version change through the normal plugin repository refresh/update flow.
 
 ## Fail-safe rules
 
