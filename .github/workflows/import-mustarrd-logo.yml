@@ -1,0 +1,31 @@
+name: Import Mustarrd logo
+
+on:
+  push:
+    paths:
+      - .github/workflows/import-mustarrd-logo.yml
+
+permissions:
+  contents: write
+
+jobs:
+  import-logo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch Mustarrd README logo
+        run: |
+          curl -fsSL \
+            https://raw.githubusercontent.com/razzamatazm/mustarrd/main/frontend/src/assets/mustarrdlogo.png \
+            -o mustarrd-dvr-handoff/logo.png
+      - name: Commit logo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add mustarrd-dvr-handoff/logo.png
+          if git diff --cached --quiet; then
+            echo "Logo already current"
+          else
+            git commit -m "Use Mustarrd logo for plugin"
+            git push
+          fi
