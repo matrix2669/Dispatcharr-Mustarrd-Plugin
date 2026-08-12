@@ -1,0 +1,58 @@
+name: Release v0.2.4 cron queue fix
+
+on:
+  push:
+    paths:
+      - .github/workflows/release-v0.2.4.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch cron queue and version
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+
+          core_path = Path('mustarrd-dvr-handoff/core.py')
+          core = core_path.read_text()
+          assert core.count('"queue": "dvr"') == 1, 'expected exactly one dvr queue assignment'
+          core = core.replace('"queue": "dvr"', '"queue": "celery"', 1)
+          core = core.replace('version = "0.2.0"', 'version = "0.2.4"', 1)
+          core_path.write_text(core)
+
+          plugin_path = Path('mustarrd-dvr-handoff/plugin.py')
+          plugin = plugin_path.read_text()
+          assert '_core.Plugin.version = "0.2.3"' in plugin
+          plugin = plugin.replace('# v0.2.3 defaults.', '# v0.2.4 defaults.', 1)
+          plugin = plugin.replace('_core.Plugin.version = "0.2.3"', '_core.Plugin.version = "0.2.4"', 1)
+          plugin_path.write_text(plugin)
+
+          manifest_path = Path('mustarrd-dvr-handoff/plugin.json')
+          manifest = manifest_path.read_text()
+          assert '"version": "0.2.3"' in manifest
+          manifest = manifest.replace('"version": "0.2.3"', '"version": "0.2.4"', 1)
+          manifest_path.write_text(manifest)
+
+          with manifest_path.open() as f:
+              data = json.load(f)
+          assert data['version'] == '0.2.4'
+          assert '"queue": "celery"' in core_path.read_text()
+          assert '"queue": "dvr"' not in core_path.read_text()
+          PY
+      - name: Compile plugin
+        run: |
+          python -m py_compile mustarrd-dvr-handoff/core.py mustarrd-dvr-handoff/plugin.py
+      - name: Commit validated release source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/release-v0.2.4.yml
+          git add mustarrd-dvr-handoff/core.py mustarrd-dvr-handoff/plugin.py mustarrd-dvr-handoff/plugin.json
+          git commit -m "Fix scheduled handoff queue for v0.2.4"
+          git push
