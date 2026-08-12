@@ -7,7 +7,7 @@ actions while preserving the stable Celery task implementation.
 
 from . import core as _core
 
-# v0.2.3 defaults. Filename templates intentionally omit the extension;
+# v0.2.4 defaults. Filename templates intentionally omit the extension;
 # Mustarrd appends .ts when scheduling a custom filename that has no .ts suffix.
 _core.DEFAULT_TV_TEMPLATE = (
     "TV Shows/{show} {tmdb}/Season {season:02d}/"
@@ -28,7 +28,7 @@ _core.DEFAULTS.update(
 
 # Dispatcharr parses plugin.json during discovery. Leaving these empty makes the
 # manifest the single source of truth for the settings/action UI.
-_core.Plugin.version = "0.2.3"
+_core.Plugin.version = "0.2.4"
 _core.Plugin.fields = []
 _core.Plugin.actions = []
 

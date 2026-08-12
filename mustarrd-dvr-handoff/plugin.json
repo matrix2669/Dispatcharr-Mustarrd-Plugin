@@ -1,6 +1,6 @@
 {
   "name": "Mustarrd DVR Handoff",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Mirrors Dispatcharr DVR recordings on catch-up channels to Mustarrd up to 72 hours ahead, then performs a final verified handoff before airtime.",
   "author": "matrix2669",
   "license": "MIT",

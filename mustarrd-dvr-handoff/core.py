@@ -992,7 +992,7 @@ def run_handoff(settings: dict[str, Any], task_logger=None) -> dict[str, Any]:
 
 class Plugin:
     name = "Mustarrd DVR Handoff"
-    version = "0.2.0"
+    version = "0.2.4"
     description = (
         "Mirrors catch-up-capable Dispatcharr DVR recordings to Mustarrd up to "
         "72 hours ahead and performs a final verified handoff shortly before airtime."
@@ -1034,7 +1034,7 @@ class Plugin:
             defaults={
                 "crontab": schedule,
                 "task": self.SCHEDULED_TASK_CELERY_NAME,
-                "queue": "dvr",
+                "queue": "celery",
                 "kwargs": "{}",
                 "enabled": True,
                 "one_off": False,
