@@ -1,0 +1,71 @@
+name: Release v0.2.5 schedule status cleanup
+
+on:
+  push:
+    paths:
+      - .github/workflows/release-v0.2.5.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch active schedule count and diagnostics
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+
+          core_path = Path('mustarrd-dvr-handoff/core.py')
+          core = core_path.read_text()
+          assert 'version = "0.2.4"' in core
+          core = core.replace('version = "0.2.4"', 'version = "0.2.5"', 1)
+
+          old = '''                schedules = _fetch_schedules(client)\n                return {\n                    "status": "ok",\n                    "message": (\n                        "Connected to Mustarrd. "\n                        f"Visible schedules: {len(schedules)}."\n                    ),\n                    "schedules": len(schedules),\n                }'''
+          new = '''                schedules = _fetch_schedules(client)\n                active_schedules = [\n                    schedule\n                    for schedule in schedules\n                    if str(schedule.get("status") or "").strip().lower()\n                    in ACTIVE_MUSTARRD_STATUSES\n                ]\n                return {\n                    "status": "ok",\n                    "message": (\n                        "Connected to Mustarrd. "\n                        f"Active visible schedules: {len(active_schedules)}."\n                    ),\n                    "schedules": len(active_schedules),\n                    "total_schedules": len(schedules),\n                }'''
+          assert old in core, 'test_connection block changed unexpectedly'
+          core = core.replace(old, new, 1)
+
+          old_status = '''                        f"Cron: {expression}; enabled={task.enabled}; "\n                        f"last_run={task.last_run_at or 'never'}; "\n                        f"total_runs={task.total_run_count}"'''
+          new_status = '''                        f"Cron: {expression}; enabled={task.enabled}; "\n                        f"queue={task.queue or 'default'}; task={task.task}; "\n                        f"last_run={task.last_run_at or 'never'}; "\n                        f"total_runs={task.total_run_count}"'''
+          assert old_status in core, 'schedule_status message changed unexpectedly'
+          core = core.replace(old_status, new_status, 1)
+          core_path.write_text(core)
+
+          plugin_path = Path('mustarrd-dvr-handoff/plugin.py')
+          plugin = plugin_path.read_text()
+          assert '_core.Plugin.version = "0.2.4"' in plugin
+          plugin = plugin.replace('# v0.2.4 defaults.', '# v0.2.5 defaults.', 1)
+          plugin = plugin.replace('_core.Plugin.version = "0.2.4"', '_core.Plugin.version = "0.2.5"', 1)
+          plugin_path.write_text(plugin)
+
+          manifest_path = Path('mustarrd-dvr-handoff/plugin.json')
+          manifest = manifest_path.read_text()
+          assert '"version": "0.2.4"' in manifest
+          manifest = manifest.replace('"version": "0.2.4"', '"version": "0.2.5"', 1)
+          manifest_path.write_text(manifest)
+
+          with manifest_path.open() as f:
+              data = json.load(f)
+          assert data['version'] == '0.2.5'
+
+          final_core = core_path.read_text()
+          assert '"queue": "celery"' in final_core
+          assert 'Active visible schedules:' in final_core
+          assert 'in ACTIVE_MUSTARRD_STATUSES' in final_core
+          assert "queue={task.queue or 'default'}" in final_core
+          PY
+      - name: Compile plugin
+        run: |
+          python -m py_compile mustarrd-dvr-handoff/core.py mustarrd-dvr-handoff/plugin.py
+      - name: Commit validated release source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/release-v0.2.5.yml
+          git add mustarrd-dvr-handoff/core.py mustarrd-dvr-handoff/plugin.py mustarrd-dvr-handoff/plugin.json
+          git commit -m "Improve cron diagnostics for v0.2.5"
+          git push
