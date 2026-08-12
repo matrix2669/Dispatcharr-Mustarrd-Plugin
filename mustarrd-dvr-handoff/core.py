@@ -992,7 +992,7 @@ def run_handoff(settings: dict[str, Any], task_logger=None) -> dict[str, Any]:
 
 class Plugin:
     name = "Mustarrd DVR Handoff"
-    version = "0.2.4"
+    version = "0.2.5"
     description = (
         "Mirrors catch-up-capable Dispatcharr DVR recordings to Mustarrd up to "
         "72 hours ahead and performs a final verified handoff shortly before airtime."
@@ -1063,13 +1063,20 @@ class Plugin:
             try:
                 client.login()
                 schedules = _fetch_schedules(client)
+                active_schedules = [
+                    schedule
+                    for schedule in schedules
+                    if str(schedule.get("status") or "").strip().lower()
+                    in ACTIVE_MUSTARRD_STATUSES
+                ]
                 return {
                     "status": "ok",
                     "message": (
                         "Connected to Mustarrd. "
-                        f"Visible schedules: {len(schedules)}."
+                        f"Active visible schedules: {len(active_schedules)}."
                     ),
-                    "schedules": len(schedules),
+                    "schedules": len(active_schedules),
+                    "total_schedules": len(schedules),
                 }
             except Exception as exc:
                 return {"status": "error", "message": str(exc)}
@@ -1109,6 +1116,7 @@ class Plugin:
                     "status": "ok",
                     "message": (
                         f"Cron: {expression}; enabled={task.enabled}; "
+                        f"queue={task.queue or 'default'}; task={task.task}; "
                         f"last_run={task.last_run_at or 'never'}; "
                         f"total_runs={task.total_run_count}"
                     ),
