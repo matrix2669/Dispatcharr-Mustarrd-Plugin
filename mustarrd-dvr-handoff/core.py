@@ -23,9 +23,27 @@ from typing import Any
 
 import requests
 
-logger = logging.getLogger(__name__)
-
+PLUGIN_NAME = "Mustarrd DVR Handoff"
 PLUGIN_KEY = "mustarrd-dvr-handoff"
+
+
+class _PluginLogAdapter(logging.LoggerAdapter):
+    """Prefix plugin messages while retaining Dispatcharr's logger namespace."""
+
+    def process(self, msg, kwargs):
+        return f"[{PLUGIN_NAME}] {msg}", kwargs
+
+
+def _plugin_logger(base_logger=None):
+    if isinstance(base_logger, _PluginLogAdapter):
+        return base_logger
+    return _PluginLogAdapter(
+        base_logger or logging.getLogger("apps.plugins.loader"),
+        {},
+    )
+
+
+logger = _plugin_logger()
 
 DEFAULT_TV_TEMPLATE = (
     "TV Shows/{show} {tmdb}/Season {season:02d}/"
@@ -662,7 +680,7 @@ def run_handoff(settings: dict[str, Any], task_logger=None) -> dict[str, Any]:
     from django.utils import timezone
     from apps.channels.models import Recording
 
-    log = task_logger or logger
+    log = _plugin_logger(task_logger)
     mirror_hours = _coerce_int(settings.get("mirror_hours"), 72, 1, 24 * 14)
     handoff_minutes = _coerce_int(
         settings.get("handoff_minutes"),
@@ -850,6 +868,13 @@ def run_handoff(settings: dict[str, Any], task_logger=None) -> dict[str, Any]:
                     )
                     continue
                 result["mirrored"] += 1
+                log.info(
+                    "Mirrored recording %s to Mustarrd schedule %s (%s / %s)",
+                    recording.id,
+                    verified_schedule.get("id"),
+                    channel.name,
+                    program.get("title"),
+                )
                 result["details"].append(
                     {
                         "recording_id": recording.id,
@@ -971,7 +996,7 @@ def run_handoff(settings: dict[str, Any], task_logger=None) -> dict[str, Any]:
                 }
             )
             log.info(
-                "Mustarrd handoff: Dispatcharr recording %s -> Mustarrd schedule %s "
+                "Handed off recording %s to Mustarrd schedule %s "
                 "(%s / %s)",
                 recording.id,
                 verified_schedule.get("id"),
@@ -987,12 +1012,25 @@ def run_handoff(settings: dict[str, Any], task_logger=None) -> dict[str, Any]:
     finally:
         client.close()
 
+    if result["considered"]:
+        log.info(
+            "Handoff check complete: considered=%s, mirrored=%s, "
+            "already_mirrored=%s, handed_off=%s, skipped=%s, errors=%s%s",
+            result["considered"],
+            result["mirrored"],
+            result["already_mirrored"],
+            result["handed_off"],
+            result["skipped"],
+            result["errors"],
+            " (dry run)" if dry_run else "",
+        )
+
     return result
 
 
 class Plugin:
-    name = "Mustarrd DVR Handoff"
-    version = "0.2.5"
+    name = PLUGIN_NAME
+    version = "0.2.6"
     description = (
         "Mirrors catch-up-capable Dispatcharr DVR recordings to Mustarrd up to "
         "72 hours ahead and performs a final verified handoff shortly before airtime."
@@ -1044,7 +1082,7 @@ class Plugin:
             },
         )
         verb = "Created" if created else "Updated"
-        action_logger.info("%s Mustarrd handoff cron: %s", verb, cron_expr)
+        action_logger.info("%s handoff cron schedule: %s", verb, cron_expr)
         return {
             "status": "ok",
             "message": f"{verb} handoff cron '{cron_expr}'.",
@@ -1052,7 +1090,7 @@ class Plugin:
 
     def run(self, action: str, params: dict, context: dict):
         settings = {**DEFAULTS, **(context.get("settings") or {})}
-        action_logger = context.get("logger") or logger
+        action_logger = _plugin_logger(context.get("logger"))
 
         if action == "test_connection":
             client = MustarrdClient(
@@ -1069,6 +1107,10 @@ class Plugin:
                     if str(schedule.get("status") or "").strip().lower()
                     in ACTIVE_MUSTARRD_STATUSES
                 ]
+                action_logger.info(
+                    "Connection test successful: %s active schedule(s)",
+                    len(active_schedules),
+                )
                 return {
                     "status": "ok",
                     "message": (
@@ -1079,6 +1121,7 @@ class Plugin:
                     "total_schedules": len(schedules),
                 }
             except Exception as exc:
+                action_logger.warning("Connection test failed: %s", exc)
                 return {"status": "error", "message": str(exc)}
             finally:
                 client.close()
@@ -1131,6 +1174,8 @@ class Plugin:
                 deleted, _ = PeriodicTask.objects.filter(
                     name=self.SCHEDULE_TASK_NAME
                 ).delete()
+                if deleted:
+                    action_logger.info("Removed handoff cron schedule")
                 return {
                     "status": "ok",
                     "message": (
