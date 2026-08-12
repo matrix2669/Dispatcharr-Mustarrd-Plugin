@@ -1002,14 +1002,10 @@ class Plugin:
     SCHEDULE_TASK_NAME = "plugin-mustarrd-dvr-handoff"
     SCHEDULED_TASK_CELERY_NAME = "mustarrd_dvr_handoff.check"
 
-    with open(
-        __file__.replace("plugin.py", "plugin.json"),
-        "r",
-        encoding="utf-8",
-    ) as _manifest_file:
-        _manifest = json.load(_manifest_file)
-    fields = _manifest.get("fields", [])
-    actions = _manifest.get("actions", [])
+    # Dispatcharr reads plugin.json during discovery and supplies the UI schema.
+    # Keep these empty here so core.py never parses the manifest itself.
+    fields = []
+    actions = []
 
     @staticmethod
     def _parse_cron(expression: str):
