@@ -1,0 +1,69 @@
+name: Fix v0.2.3 plugin loader
+
+on:
+  push:
+    paths:
+      - .github/workflows/fix-v0.2.3.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Fix manifest loading and bump version
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          import re
+
+          core_path = Path('mustarrd-dvr-handoff/core.py')
+          core = core_path.read_text()
+          pattern = re.compile(
+              r'\n    with open\(\n'
+              r'        __file__\.replace\("plugin\.py", "plugin\.json"\),\n'
+              r'        "r",\n'
+              r'        encoding="utf-8",\n'
+              r'    \) as _manifest_file:\n'
+              r'        _manifest = json\.load\(_manifest_file\)\n'
+              r'    fields = _manifest\.get\("fields", \[\]\)\n'
+              r'    actions = _manifest\.get\("actions", \[\]\)\n'
+          )
+          replacement = (
+              '\n    # Dispatcharr reads plugin.json during discovery and supplies the UI schema.\n'
+              '    # Keep these empty here so core.py never parses the manifest itself.\n'
+              '    fields = []\n'
+              '    actions = []\n'
+          )
+          core, count = pattern.subn(replacement, core, count=1)
+          if count != 1:
+              raise SystemExit(f'Expected to replace one legacy manifest-loading block, replaced {count}')
+          core_path.write_text(core)
+
+          plugin_path = Path('mustarrd-dvr-handoff/plugin.py')
+          plugin = plugin_path.read_text()
+          plugin = plugin.replace('# v0.2.2 defaults.', '# v0.2.3 defaults.')
+          plugin = plugin.replace('_core.Plugin.version = "0.2.2"', '_core.Plugin.version = "0.2.3"')
+          plugin_path.write_text(plugin)
+
+          manifest_path = Path('mustarrd-dvr-handoff/plugin.json')
+          manifest = json.loads(manifest_path.read_text())
+          manifest['version'] = '0.2.3'
+          manifest_path.write_text(json.dumps(manifest, indent=2) + '\n')
+          PY
+      - name: Validate release files
+        run: |
+          python -m json.tool mustarrd-dvr-handoff/plugin.json >/dev/null
+          python -m py_compile mustarrd-dvr-handoff/core.py mustarrd-dvr-handoff/plugin.py
+      - name: Commit fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add mustarrd-dvr-handoff/core.py mustarrd-dvr-handoff/plugin.py mustarrd-dvr-handoff/plugin.json
+          git commit -m "Fix plugin manifest loading in v0.2.3"
+          git push
