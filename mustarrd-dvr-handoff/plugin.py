@@ -8,7 +8,7 @@ actions while preserving the stable Celery task implementation.
 from . import core as _core
 from .annual_series import install_core_hooks
 
-# v0.2.7 defaults. Filename templates intentionally omit the extension;
+# v0.2.8 defaults. Filename templates intentionally omit the extension;
 # Mustarrd appends .ts when scheduling a custom filename that has no .ts suffix.
 _core.DEFAULT_TV_TEMPLATE = (
     "TV Shows/{show} {tmdb}/Season {season:02d}/"
@@ -28,14 +28,14 @@ _core.DEFAULTS.update(
 )
 
 # Dispatcharr parses provider xmltv_ns season -1 as season 0. Install the
-# filename/schedule normalization hook so recurring series use their airing year
+# filename/schedule normalization hook so those episodes use their airing year
 # instead of being handed to Plex/Jellyfin as specials. Explicit onscreen S00
 # episodes are intentionally preserved.
 install_core_hooks(_core)
 
 # Dispatcharr parses plugin.json during discovery. Leaving these empty makes the
 # manifest the single source of truth for the settings/action UI.
-_core.Plugin.version = "0.2.7"
+_core.Plugin.version = "0.2.8"
 _core.Plugin.fields = []
 _core.Plugin.actions = []
 
