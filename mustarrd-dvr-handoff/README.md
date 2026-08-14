@@ -96,18 +96,21 @@ Movie templates additionally support `{year}`.
 
 ## Daily/yearly series season handling
 
-Some XMLTV providers report a recurring daily series with an unknown season (`xmltv_ns` season `-1`) while still supplying a useful episode sequence. Dispatcharr normalizes that provider value to season `0`, which Plex treats as **Specials**.
+Some XMLTV providers report an unknown season as `xmltv_ns` season `-1` while still supplying a useful episode sequence. Dispatcharr normalizes that provider value to season `0`, which Plex treats as **Specials**.
 
-For a clearly identified series, the plugin now uses the airing year as the effective season when Dispatcharr reports season `0` and there is no explicit onscreen `S00` marker. Both the Mustarrd schedule payload and rendered filename use the corrected season.
+When Dispatcharr gives the plugin season `0` plus a valid episode number and there is no explicit onscreen `S00` marker, the handoff uses the airing year as the effective season. This does not depend on the guide also supplying a `Series` category, because daily sports-talk programmes often arrive with only `Sports`. Both the Mustarrd schedule payload and rendered filename use the corrected season.
 
-Example for **First Things First** airing in 2026:
+Examples for **First Things First** airing in 2026:
 
 ```text
-Dispatcharr EPG: season 0, episode 155
-Mustarrd/Plex:    Season 2026 / S2026E155
+Dispatcharr EPG: season 0, episode 158
+Mustarrd/Plex:    Season 2026 / S2026E158
+
+Dispatcharr EPG: First Things First: OT, season 0, episode 145
+Mustarrd/Plex:    Season 2026 / S2026E145
 ```
 
-An explicit guide value such as `S00E03` remains season 0, so genuine specials are not rewritten. Sports-only entries without clear series identity are also left unchanged.
+An explicit guide value such as `S00E03` remains season 0, so genuine specials are not rewritten.
 
 After upgrading, any Mustarrd schedule that was already mirrored with an old `S00...` filename should be deleted once so the plugin can recreate it with the corrected yearly season.
 
