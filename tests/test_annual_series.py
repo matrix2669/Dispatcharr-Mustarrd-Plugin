@@ -16,9 +16,90 @@ sys.modules[SPEC.name] = MODULE
 SPEC.loader.exec_module(MODULE)
 
 normalize_annual_series_season = MODULE.normalize_annual_series_season
+enrich_from_mustarrd_epg = MODULE.enrich_from_mustarrd_epg
+needs_raw_xmltv_lookup = MODULE.needs_raw_xmltv_lookup
 
 
 class AnnualSeriesSeasonTests(unittest.TestCase):
+    def test_real_dispatcharr_payload_is_enriched_from_first_things_first_epg(self):
+        dispatcharr_program = {
+            "id": 8436484,
+            "title": "First Things First",
+            "start_time": "2026-08-14T19:00:00+00:00",
+            "start_timestamp": 1786734000,
+            "stop_timestamp": 1786741200,
+            "season_number": 0,
+            "episode_number": 158,
+            "episode_onscreen": "S00E158",
+        }
+        mustarrd_epg = [{
+            "id": "8436484",
+            "start_timestamp": 1786734000,
+            "stop_timestamp": 1786741200,
+            "season_number": 0,
+            "episode_number": 158,
+            "episode_onscreen": "S00E158",
+            "episode_xmltv_ns": "-1.157.",
+        }]
+
+        self.assertTrue(needs_raw_xmltv_lookup(dispatcharr_program))
+        enriched = enrich_from_mustarrd_epg(dispatcharr_program, mustarrd_epg)
+        normalized = normalize_annual_series_season(enriched)
+
+        self.assertEqual(enriched["episode_xmltv_ns"], "-1.157.")
+        self.assertEqual(normalized["season_number"], 2026)
+        self.assertNotIn("episode_xmltv_ns", dispatcharr_program)
+
+    def test_real_dispatcharr_payload_is_enriched_from_first_things_first_ot_epg(self):
+        dispatcharr_program = {
+            "id": 8433457,
+            "title": "First Things First: OT",
+            "start_time": "2026-08-14T21:00:00+00:00",
+            "start_timestamp": 1786741200,
+            "stop_timestamp": 1786744800,
+            "season_number": 0,
+            "episode_number": 145,
+            "episode_onscreen": "S00E145",
+        }
+        mustarrd_epg = [{
+            "id": "8433457",
+            "start_timestamp": 1786741200,
+            "stop_timestamp": 1786744800,
+            "season_number": 0,
+            "episode_number": 145,
+            "episode_onscreen": "S00E145",
+            "episode_xmltv_ns": "-1.144.",
+        }]
+
+        enriched = enrich_from_mustarrd_epg(dispatcharr_program, mustarrd_epg)
+        normalized = normalize_annual_series_season(enriched)
+
+        self.assertEqual(normalized["season_number"], 2026)
+
+    def test_epg_entry_for_another_program_does_not_change_special(self):
+        special = {
+            "id": 10,
+            "start_time": "2026-12-20T20:00:00+00:00",
+            "start_timestamp": 1797796800,
+            "stop_timestamp": 1797800400,
+            "season_number": 0,
+            "episode_number": 3,
+            "episode_onscreen": "S00E03",
+        }
+        unrelated_epg = [{
+            "id": "11",
+            "start_timestamp": 1797804000,
+            "stop_timestamp": 1797807600,
+            "episode_xmltv_ns": "-1.2.",
+        }]
+
+        enriched = enrich_from_mustarrd_epg(special, unrelated_epg)
+        normalized = normalize_annual_series_season(enriched)
+
+        self.assertIs(enriched, special)
+        self.assertIs(normalized, special)
+        self.assertEqual(normalized["season_number"], 0)
+
     def test_first_things_first_uses_airing_year(self):
         program = {
             "title": "First Things First",

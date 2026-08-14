@@ -23,6 +23,12 @@ from typing import Any
 
 import requests
 
+from .annual_series import (
+    enrich_from_mustarrd_epg,
+    needs_raw_xmltv_lookup,
+    normalize_annual_series_season,
+)
+
 PLUGIN_NAME = "Mustarrd DVR Handoff"
 PLUGIN_KEY = "mustarrd-dvr-handoff"
 
@@ -630,6 +636,40 @@ def _fetch_schedules(client: MustarrdClient) -> list[dict]:
     return schedules
 
 
+def _restore_raw_episode_metadata(
+    client: MustarrdClient,
+    account_id: int,
+    channel_id: str,
+    program: dict,
+) -> dict:
+    """Recover raw XMLTV data that Dispatcharr does not persist in ProgramData."""
+    if not needs_raw_xmltv_lookup(program):
+        return normalize_annual_series_season(program)
+
+    try:
+        entries = client.get_json(
+            f"/api/accounts/{account_id}/channels/{channel_id}/epg",
+            params={"days_back": 7, "fresh": "true"},
+        )
+    except MustarrdError as exc:
+        logger.warning(
+            "Could not restore raw episode metadata for channel %s: %s",
+            channel_id,
+            exc,
+        )
+        return program
+
+    if not isinstance(entries, list):
+        logger.warning(
+            "Mustarrd EPG endpoint returned an unexpected payload for channel %s",
+            channel_id,
+        )
+        return program
+
+    enriched = enrich_from_mustarrd_epg(program, entries)
+    return normalize_annual_series_season(enriched)
+
+
 def _delete_dispatcharr_recording(
     recording_id: int,
     expected_start: datetime,
@@ -778,6 +818,13 @@ def run_handoff(settings: dict[str, Any], task_logger=None) -> dict[str, Any]:
                 match_mode = "manual"
                 pre_padding = 0
                 post_padding = 0
+
+            program = _restore_raw_episode_metadata(
+                client,
+                account_id,
+                channel_id,
+                program,
+            )
 
             expected_key = _program_key(account_id, channel_id, program)
             if expected_key is None:

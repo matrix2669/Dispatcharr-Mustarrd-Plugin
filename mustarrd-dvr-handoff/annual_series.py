@@ -46,6 +46,62 @@ def _has_unknown_xmltv_season(program: dict[str, Any]) -> bool:
     return _coerce_optional_int(season_component) == -1
 
 
+def needs_raw_xmltv_lookup(program: dict[str, Any]) -> bool:
+    """Return whether Dispatcharr discarded data needed to classify an S00."""
+    season = _coerce_optional_int(program.get("season_number"))
+    episode = _coerce_optional_int(program.get("episode_number"))
+    return bool(
+        season == 0
+        and episode is not None
+        and episode > 0
+        and _has_explicit_special_season(program)
+        and not str(program.get("episode_xmltv_ns") or "").strip()
+    )
+
+
+def enrich_from_mustarrd_epg(
+    program: dict[str, Any],
+    epg_entries: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Restore raw episode metadata from the matching Mustarrd EPG entry."""
+    program_id = str(program.get("id") or "").strip()
+    start_timestamp = _coerce_optional_int(program.get("start_timestamp"))
+    stop_timestamp = _coerce_optional_int(program.get("stop_timestamp"))
+
+    match = None
+    if program_id:
+        match = next(
+            (
+                entry
+                for entry in epg_entries
+                if str(entry.get("id") or "").strip() == program_id
+            ),
+            None,
+        )
+    if match is None and start_timestamp and stop_timestamp:
+        match = next(
+            (
+                entry
+                for entry in epg_entries
+                if _coerce_optional_int(entry.get("start_timestamp")) == start_timestamp
+                and _coerce_optional_int(entry.get("stop_timestamp")) == stop_timestamp
+            ),
+            None,
+        )
+    if match is None:
+        return program
+
+    raw_xmltv = str(match.get("episode_xmltv_ns") or "").strip()
+    if not raw_xmltv:
+        return program
+
+    updated = dict(program)
+    updated["episode_xmltv_ns"] = raw_xmltv
+    if match.get("episode_onscreen"):
+        updated["episode_onscreen"] = match["episode_onscreen"]
+    return updated
+
+
 def _airing_year(program: dict[str, Any]) -> int | None:
     start_time = program.get("start_time")
     if start_time:

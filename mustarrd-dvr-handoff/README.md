@@ -96,9 +96,9 @@ Movie templates additionally support `{year}`.
 
 ## Daily/yearly series season handling
 
-Some XMLTV providers report an unknown season as `xmltv_ns` season `-1` while still supplying a useful episode sequence. Dispatcharr normalizes that provider value to season `0`, which Plex treats as **Specials**.
+Some XMLTV providers report an unknown season as `xmltv_ns` season `-1` while still supplying a useful episode sequence. Dispatcharr normalizes that provider value to season `0`, which Plex treats as **Specials**, and does not retain the raw XMLTV namespace in `ProgramData`.
 
-When Dispatcharr gives the plugin season `0` plus a valid episode number and there is no explicit onscreen `S00` marker, the handoff uses the airing year as the effective season. This does not depend on the guide also supplying a `Series` category, because daily sports-talk programmes often arrive with only `Sports`. Both the Mustarrd schedule payload and rendered filename use the corrected season.
+When season `0` conflicts with an onscreen `S00`, the plugin restores the raw namespace from the matching fresh Mustarrd EPG entry. Raw season `-1` takes precedence and the handoff uses the airing year; otherwise onscreen `S00` remains a genuine special. Both the Mustarrd schedule payload and rendered filename use the corrected season.
 
 Examples for **First Things First** airing in 2026:
 
