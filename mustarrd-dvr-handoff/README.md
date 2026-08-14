@@ -94,6 +94,23 @@ TV templates can use:
 
 Movie templates additionally support `{year}`.
 
+## Daily/yearly series season handling
+
+Some XMLTV providers report a recurring daily series with an unknown season (`xmltv_ns` season `-1`) while still supplying a useful episode sequence. Dispatcharr normalizes that provider value to season `0`, which Plex treats as **Specials**.
+
+For a clearly identified series, the plugin now uses the airing year as the effective season when Dispatcharr reports season `0` and there is no explicit onscreen `S00` marker. Both the Mustarrd schedule payload and rendered filename use the corrected season.
+
+Example for **First Things First** airing in 2026:
+
+```text
+Dispatcharr EPG: season 0, episode 155
+Mustarrd/Plex:    Season 2026 / S2026E155
+```
+
+An explicit guide value such as `S00E03` remains season 0, so genuine specials are not rewritten. Sports-only entries without clear series identity are also left unchanged.
+
+After upgrading, any Mustarrd schedule that was already mirrored with an old `S00...` filename should be deleted once so the plugin can recreate it with the corrected yearly season.
+
 ## First setup
 
 1. Save the Mustarrd URL, username/password, and Dispatcharr account ID.
@@ -117,7 +134,7 @@ The plugin never deletes a Dispatcharr recording when:
 
 - Dispatcharr says the channel does not support catch-up;
 - Mustarrd authentication or API access fails;
-- an EPG-backed recording cannot be matched confidently to Dispatcharr's current guide;
+- an EPG-backed recording cannot be matched confidently against Dispatcharr's current guide;
 - an existing or newly-created Mustarrd schedule does not match the expected program, padding, or filename;
 - Mustarrd does not see the channel as catch-up capable during the final handoff check;
 - the Dispatcharr recording changed or reached airtime during the handoff transaction.

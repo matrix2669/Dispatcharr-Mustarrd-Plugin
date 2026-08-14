@@ -70,6 +70,8 @@ Do not include a file extension. Mustarrd appends `.ts` to scheduled custom file
 
 Nested paths require Mustarrd's template-subdirectory support so `/` is preserved as a directory separator.
 
+For recurring series where Dispatcharr reports season `0` from an unknown XMLTV season and there is no explicit onscreen `S00`, the plugin uses the airing year as the effective season. For example, **First Things First** airing in 2026 is handed to Mustarrd/Plex as `S2026E155` rather than `S00E155`. Genuine explicit `S00` specials remain unchanged.
+
 ## Mustarrd account
 
 `Mustarrd Dispatcharr Account ID` must point to the Mustarrd Xtream account whose server is Dispatcharr. Dispatcharr's Xtream output uses its `Channel.id` as the Xtream `stream_id`, so no fuzzy channel mapping is required.

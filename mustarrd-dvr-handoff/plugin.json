@@ -1,6 +1,6 @@
 {
   "name": "Mustarrd DVR Handoff",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "Mirrors Dispatcharr DVR recordings on catch-up channels to Mustarrd up to 72 hours ahead, then performs a final verified handoff before airtime.",
   "author": "matrix2669",
   "license": "MIT",
@@ -33,8 +33,8 @@
       "id": "mustarrd_password",
       "label": "Mustarrd Password",
       "type": "string",
-      "input_type": "password",
-      "default": ""
+      "default": "",
+      "input_type": "password"
     },
     {
       "id": "mustarrd_account_id",
@@ -69,7 +69,7 @@
       "label": "TV Filename Template",
       "type": "string",
       "default": "TV Shows/{show} {tmdb}/Season {season:02d}/{show} - S{season:02d}E{episode:02d} - {title}",
-      "help_text": "Available tags: {show}, {season}, {episode}, {title}, {date}, {channel}, {tmdb}, {tmdb_id}, {tvdb_id}, {imdb_id}. {tmdb} expands to Plex and Jellyfin tags. Do not include a file extension; Mustarrd appends .ts."
+      "help_text": "Available tags: {show}, {season}, {episode}, {title}, {date}, {channel}, {tmdb}, {tmdb_id}, {tvdb_id}, {imdb_id}. {tmdb} expands to Plex and Jellyfin tags. Recurring series reported by Dispatcharr as season 0 without an explicit onscreen S00 use the airing year as the season. Do not include a file extension; Mustarrd appends .ts."
     },
     {
       "id": "movie_template",
