@@ -1,13 +1,14 @@
-"""Annual-season normalization for recurring Dispatcharr EPG series.
+"""Annual-season normalization for Dispatcharr EPG programmes.
 
-Some XMLTV providers use an invalid/unknown season of ``-1`` while keeping a
-useful zero-based episode number. Dispatcharr normalizes that to season ``0``
-and episode ``N+1``. Media servers then interpret those ordinary episodes as
-specials.
+XMLTV ``xmltv_ns`` season numbers are zero-based. Some providers use ``-1``
+when the season is unknown but still supply a useful episode number. Dispatcharr
+normalizes that value to season ``0`` and episode ``N+1``. Media servers then
+interpret those ordinary episodes as specials.
 
-For clearly identified series, treat that season-zero-without-an-explicit-S00
-case as an annual season and use the airing year. Explicit onscreen ``S00``
-values remain specials.
+Dispatcharr also preserves an explicit onscreen episode marker separately. That
+lets the handoff distinguish a provider's unknown season from a genuine onscreen
+``S00`` special without relying on categories or external IDs, which are often
+missing on daily sports-talk programmes.
 """
 
 from __future__ import annotations
@@ -17,13 +18,6 @@ import re
 from typing import Any
 
 
-_SERIES_CATEGORIES = {
-    "series",
-    "tv series",
-    "tv-series",
-    "television series",
-}
-_SPORTS_CATEGORIES = {"sports", "sport", "deportes", "esports"}
 _EXPLICIT_SPECIAL_RE = re.compile(
     r"(?:^|\b)S(?:eason)?\s*0+(?=\D|$)",
     re.IGNORECASE,
@@ -39,47 +33,9 @@ def _coerce_optional_int(value: Any) -> int | None:
         return None
 
 
-def _category_keys(program: dict[str, Any]) -> set[str]:
-    raw = program.get("categories") or []
-    if isinstance(raw, str):
-        raw = [raw]
-    elif not isinstance(raw, (list, tuple, set)):
-        raw = []
-
-    values = list(raw)
-    if program.get("category"):
-        values.append(program.get("category"))
-
-    return {
-        str(value).strip().casefold()
-        for value in values
-        if str(value or "").strip()
-    }
-
-
 def _has_explicit_special_season(program: dict[str, Any]) -> bool:
     onscreen = str(program.get("episode_onscreen") or "").strip()
     return bool(onscreen and _EXPLICIT_SPECIAL_RE.search(onscreen))
-
-
-def _has_series_identity(program: dict[str, Any]) -> bool:
-    categories = _category_keys(program)
-    if categories & _SERIES_CATEGORIES:
-        return True
-
-    # Sports feeds sometimes attach series IDs to leagues/events. If the guide
-    # gives us only Sports-style category evidence, do not infer a yearly season
-    # from external IDs alone.
-    if categories & _SPORTS_CATEGORIES:
-        return False
-
-    for key in ("tvdb_id", "tmdb_id"):
-        value = str(program.get(key) or "").strip().casefold()
-        if value.startswith("series/"):
-            return True
-
-    dd_progid = str(program.get("dd_progid") or "").strip().upper()
-    return dd_progid.startswith("EP")
 
 
 def _airing_year(program: dict[str, Any]) -> int | None:
@@ -108,19 +64,18 @@ def _airing_year(program: dict[str, Any]) -> int | None:
 
 
 def normalize_annual_series_season(program: dict[str, Any]) -> dict[str, Any]:
-    """Return a copy with season 0 replaced by airing year when appropriate.
+    """Return a copy with Dispatcharr's unknown season 0 replaced by airing year.
 
-    Dispatcharr stores a provider ``xmltv_ns`` season of ``-1`` as season 0.
-    A genuine explicit special retains ``episode_onscreen=S00...`` and is never
-    rewritten. The input dict is never mutated.
+    Dispatcharr's XMLTV parser maps a provider ``xmltv_ns`` season of ``-1`` to
+    season 0. A genuine onscreen season-zero episode is retained separately as
+    ``episode_onscreen=S00...`` and is never rewritten. The input dict is never
+    mutated.
     """
     season = _coerce_optional_int(program.get("season_number"))
     episode = _coerce_optional_int(program.get("episode_number"))
     if season != 0 or episode is None or episode <= 0:
         return program
     if _has_explicit_special_season(program):
-        return program
-    if not _has_series_identity(program):
         return program
 
     year = _airing_year(program)
