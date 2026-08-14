@@ -25,8 +25,9 @@ class AnnualSeriesSeasonTests(unittest.TestCase):
             "start_time": "2026-08-14T19:00:00+00:00",
             "season_number": 0,
             "episode_number": 158,
-            "episode_onscreen": None,
-            "categories": ["Sports"],
+            "episode_onscreen": "S00E158",
+            "episode_xmltv_ns": "-1.157.",
+            "categories": ["Sports", "Series"],
             "tmdb_id": "288982",
         }
 
@@ -42,8 +43,9 @@ class AnnualSeriesSeasonTests(unittest.TestCase):
             "start_time": "2026-08-14T21:00:00+00:00",
             "season_number": 0,
             "episode_number": 145,
-            "episode_onscreen": None,
-            "categories": ["Sports"],
+            "episode_onscreen": "S00E145",
+            "episode_xmltv_ns": "-1.144.",
+            "categories": ["Sports", "Series"],
             "tmdb_id": "304527",
         }
 
@@ -59,6 +61,22 @@ class AnnualSeriesSeasonTests(unittest.TestCase):
             "season_number": 0,
             "episode_number": 3,
             "episode_onscreen": "S00E03",
+            "categories": ["Series"],
+        }
+
+        normalized = normalize_annual_series_season(program)
+
+        self.assertIs(normalized, program)
+        self.assertEqual(normalized["season_number"], 0)
+
+    def test_explicit_s00_with_nonnegative_xmltv_season_is_preserved(self):
+        program = {
+            "title": "Example Series",
+            "start_time": "2026-12-20T20:00:00+00:00",
+            "season_number": 0,
+            "episode_number": 3,
+            "episode_onscreen": "S00E03",
+            "episode_xmltv_ns": "0.2.",
             "categories": ["Series"],
         }
 

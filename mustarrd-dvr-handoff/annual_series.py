@@ -7,8 +7,8 @@ interpret those ordinary episodes as specials.
 
 Dispatcharr also preserves an explicit onscreen episode marker separately. That
 lets the handoff distinguish a provider's unknown season from a genuine onscreen
-``S00`` special without relying on categories or external IDs, which are often
-missing on daily sports-talk programmes.
+``S00`` special. When both are present, raw XMLTV season ``-1`` is authoritative;
+otherwise an onscreen ``S00`` remains a genuine special.
 """
 
 from __future__ import annotations
@@ -36,6 +36,14 @@ def _coerce_optional_int(value: Any) -> int | None:
 def _has_explicit_special_season(program: dict[str, Any]) -> bool:
     onscreen = str(program.get("episode_onscreen") or "").strip()
     return bool(onscreen and _EXPLICIT_SPECIAL_RE.search(onscreen))
+
+
+def _has_unknown_xmltv_season(program: dict[str, Any]) -> bool:
+    xmltv_ns = str(program.get("episode_xmltv_ns") or "").strip()
+    if not xmltv_ns:
+        return False
+    season_component = xmltv_ns.split(".", 1)[0].strip()
+    return _coerce_optional_int(season_component) == -1
 
 
 def _airing_year(program: dict[str, Any]) -> int | None:
@@ -68,14 +76,18 @@ def normalize_annual_series_season(program: dict[str, Any]) -> dict[str, Any]:
 
     Dispatcharr's XMLTV parser maps a provider ``xmltv_ns`` season of ``-1`` to
     season 0. A genuine onscreen season-zero episode is retained separately as
-    ``episode_onscreen=S00...`` and is never rewritten. The input dict is never
-    mutated.
+    ``episode_onscreen=S00...``. A raw XMLTV season of ``-1`` overrides that
+    onscreen value because the provider is explicitly marking the season as
+    unknown. The input dict is never mutated.
     """
     season = _coerce_optional_int(program.get("season_number"))
     episode = _coerce_optional_int(program.get("episode_number"))
     if season != 0 or episode is None or episode <= 0:
         return program
-    if _has_explicit_special_season(program):
+    if (
+        _has_explicit_special_season(program)
+        and not _has_unknown_xmltv_season(program)
+    ):
         return program
 
     year = _airing_year(program)

@@ -70,7 +70,7 @@ Do not include a file extension. Mustarrd appends `.ts` to scheduled custom file
 
 Nested paths require Mustarrd's template-subdirectory support so `/` is preserved as a directory separator.
 
-For recurring series where Dispatcharr reports season `0` from an unknown XMLTV season and there is no explicit onscreen `S00`, the plugin uses the airing year as the effective season. For example, **First Things First** airing in 2026 is handed to Mustarrd/Plex as `S2026E155` rather than `S00E155`. Genuine explicit `S00` specials remain unchanged.
+For recurring series where raw XMLTV reports unknown season `-1`, the plugin uses the airing year as the effective season even if the provider also emits an onscreen `S00`. For example, **First Things First** airing in 2026 is handed to Mustarrd/Plex as `S2026E158` rather than `S00E158`. An explicit `S00` without raw XMLTV season `-1` remains a genuine special.
 
 ## Mustarrd account
 

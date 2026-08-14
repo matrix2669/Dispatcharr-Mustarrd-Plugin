@@ -1,6 +1,6 @@
 {
   "name": "Mustarrd DVR Handoff",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "Mirrors Dispatcharr DVR recordings on catch-up channels to Mustarrd up to 72 hours ahead, then performs a final verified handoff before airtime.",
   "author": "matrix2669",
   "license": "MIT",
@@ -69,7 +69,7 @@
       "label": "TV Filename Template",
       "type": "string",
       "default": "TV Shows/{show} {tmdb}/Season {season:02d}/{show} - S{season:02d}E{episode:02d} - {title}",
-      "help_text": "Available tags: {show}, {season}, {episode}, {title}, {date}, {channel}, {tmdb}, {tmdb_id}, {tvdb_id}, {imdb_id}. {tmdb} expands to Plex and Jellyfin tags. Dispatcharr season-0 episodes without an explicit onscreen S00 use the airing year as the effective season. Do not include a file extension; Mustarrd appends .ts."
+      "help_text": "Available tags: {show}, {season}, {episode}, {title}, {date}, {channel}, {tmdb}, {tmdb_id}, {tvdb_id}, {imdb_id}. {tmdb} expands to Plex and Jellyfin tags. Raw XMLTV season -1 uses the airing year even when the provider also emits onscreen S00; other explicit S00 episodes remain specials. Do not include a file extension; Mustarrd appends .ts."
     },
     {
       "id": "movie_template",
