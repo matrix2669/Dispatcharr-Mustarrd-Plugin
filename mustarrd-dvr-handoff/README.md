@@ -89,7 +89,7 @@ TV templates can use:
 `{tmdb}` expands to both media-server identifiers:
 
 ```text
-{tmdb-133532} [tmdbid=133532]
+{tmdb-133532} [tmdbid-133532]
 ```
 
 Movie templates additionally support `{year}`.

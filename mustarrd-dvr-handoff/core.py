@@ -365,7 +365,7 @@ def _tmdb_tag(value: Any) -> str:
     tmdb_id = _normalize_external_id(value)
     if not tmdb_id:
         return ""
-    return f"{{tmdb-{tmdb_id}}} [tmdbid={tmdb_id}]"
+    return f"{{tmdb-{tmdb_id}}} [tmdbid-{tmdb_id}]"
 
 
 def _category_values(cp: dict) -> list[str]:

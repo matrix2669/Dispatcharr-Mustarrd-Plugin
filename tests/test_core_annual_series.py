@@ -50,6 +50,12 @@ class FakeClient:
 
 
 class CoreAnnualSeriesIntegrationTests(unittest.TestCase):
+    def test_tmdb_tag_uses_dash_separator(self):
+        self.assertEqual(
+            CORE._tmdb_tag("series/304527"),
+            "{tmdb-304527} [tmdbid-304527]",
+        )
+
     def test_restore_fetches_fresh_epg_and_normalizes_schedule_payload(self):
         program = {
             "id": 8436484,

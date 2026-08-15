@@ -8,7 +8,7 @@ actions while preserving the stable Celery task implementation.
 from . import core as _core
 from .annual_series import install_core_hooks
 
-# v0.2.10 defaults. Filename templates intentionally omit the extension;
+# v0.2.11 defaults. Filename templates intentionally omit the extension;
 # Mustarrd appends .ts when scheduling a custom filename that has no .ts suffix.
 _core.DEFAULT_TV_TEMPLATE = (
     "TV Shows/{show} {tmdb}/Season {season:02d}/"
@@ -35,7 +35,7 @@ install_core_hooks(_core)
 
 # Dispatcharr parses plugin.json during discovery. Leaving these empty makes the
 # manifest the single source of truth for the settings/action UI.
-_core.Plugin.version = "0.2.10"
+_core.Plugin.version = "0.2.11"
 _core.Plugin.fields = []
 _core.Plugin.actions = []
 
