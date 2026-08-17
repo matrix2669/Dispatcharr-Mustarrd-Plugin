@@ -1,14 +1,15 @@
 """Dispatcharr entry point for Mustarrd DVR Handoff.
 
-The implementation lives in core.py. Keeping this entry point small lets
-Dispatcharr's plugin.json remain the single source of truth for UI fields and
-actions while preserving the stable Celery task implementation.
+The handoff implementation lives in core.py. The plugin-owned scheduler lives
+in scheduler.py so automatic checks do not depend on Dispatcharr registering a
+plugin-defined Celery task in the default prefork worker.
 """
 
 from . import core as _core
 from .annual_series import install_core_hooks
+from .scheduler import install_scheduler_hooks
 
-# v0.2.11 defaults. Filename templates intentionally omit the extension;
+# v0.2.12 defaults. Filename templates intentionally omit the extension;
 # Mustarrd appends .ts when scheduling a custom filename that has no .ts suffix.
 _core.DEFAULT_TV_TEMPLATE = (
     "TV Shows/{show} {tmdb}/Season {season:02d}/"
@@ -33,14 +34,19 @@ _core.DEFAULTS.update(
 # episodes are intentionally preserved.
 install_core_hooks(_core)
 
+# Replace the old Beat scheduling surface with a plugin-owned scheduler. The
+# existing shared task in core.py remains inert for compatibility; v0.2.12
+# removes the legacy PeriodicTask row and never submits that task automatically.
+install_scheduler_hooks(_core)
+
 # Dispatcharr parses plugin.json during discovery. Leaving these empty makes the
 # manifest the single source of truth for the settings/action UI.
-_core.Plugin.version = "0.2.11"
+_core.Plugin.version = "0.2.12"
 _core.Plugin.fields = []
 _core.Plugin.actions = []
 
 Plugin = _core.Plugin
 
-# Importing core registers the stable Celery shared task. Re-export it for
-# tooling/introspection without registering a second task.
+# Re-export the legacy task symbol for compatibility/tooling. The plugin-owned
+# scheduler calls run_handoff() directly and does not enqueue this task.
 mustarrd_dvr_handoff_check = getattr(_core, "mustarrd_dvr_handoff_check", None)

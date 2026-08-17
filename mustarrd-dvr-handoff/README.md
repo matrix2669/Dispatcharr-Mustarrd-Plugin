@@ -5,7 +5,7 @@ This plugin uses Dispatcharr as the DVR/series-pass UI and Mustarrd as the recor
 ## Default flow
 
 1. Dispatcharr creates its normal future `Recording` rows from **Record**, **Record Series**, or other DVR rules.
-2. The plugin cron runs every 5 minutes by default.
+2. The plugin-owned scheduler runs every 5 minutes by default.
 3. Catch-up-capable recordings up to **72 hours ahead** are mirrored into Mustarrd while the native Dispatcharr recording remains scheduled as a fallback.
 4. The plugin uses Dispatcharr's own channel catch-up state and EPG metadata to build the Mustarrd schedule and filename.
 5. When a recording enters the final **60-minute handoff window**, the plugin asks Mustarrd for its current catch-up channel list and confirms that Mustarrd still sees that channel.
@@ -14,6 +14,20 @@ This plugin uses Dispatcharr as the DVR/series-pass UI and Mustarrd as the recor
 8. If any final check fails, the Dispatcharr recording remains intact and records normally.
 
 Manual time recordings on catch-up channels are handed off as an exact synthetic time window. EPG-backed recordings that cannot be matched confidently against Dispatcharr's current guide are kept in Dispatcharr rather than risking the wrong Mustarrd program.
+
+## Automatic scheduler
+
+Version 0.2.12 no longer uses a plugin-defined Celery Beat task for automatic mirror/handoff checks. Dispatcharr 0.29 can load plugin tasks too late for the default prefork Celery consumer, causing `Received unregistered task` errors even though the task exists in child workers.
+
+Instead, enabled uWSGI plugin instances check the configured 5-field UTC cron locally. A Redis minute lock ensures only one Dispatcharr worker runs a matching minute. The winning worker calls the same `run_handoff()` path used by **Run Mirror / Handoff Check Now**.
+
+The scheduler's durable state is stored at:
+
+```text
+/data/plugins/.mustarrd-dvr-handoff-scheduler.json
+```
+
+On upgrade from an older release, an existing `plugin-mustarrd-dvr-handoff` Celery Beat row is migrated into that state file and deleted automatically. **Apply / Update Cron Schedule**, **Show Cron Status**, and **Remove Cron Schedule** keep the same UI workflow as before.
 
 ## Install
 
@@ -121,14 +135,14 @@ After upgrading, any Mustarrd schedule that was already mirrored with an old `S0
 3. Optional: enable **Dry Run**, then click **Run Mirror / Handoff Check Now**.
 4. Disable Dry Run.
 5. Click **Apply / Update Cron Schedule**.
-6. Use **Show Cron Status** to confirm Beat has begun running it.
+6. Use **Show Cron Status** to confirm the plugin scheduler has begun running it.
 
 Defaults:
 
 ```text
 Mirror ahead: 72 hours
 Final handoff: 60 minutes before Dispatcharr recording start
-Cron: */5 * * * *
+Cron: */5 * * * * UTC
 ```
 
 ## Fail-safe rules

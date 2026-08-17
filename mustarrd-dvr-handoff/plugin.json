@@ -1,6 +1,6 @@
 {
   "name": "Mustarrd DVR Handoff",
-  "version": "0.2.11",
+  "version": "0.2.12",
   "description": "Mirrors Dispatcharr DVR recordings on catch-up channels to Mustarrd up to 72 hours ahead, then performs a final verified handoff before airtime.",
   "author": "matrix2669",
   "license": "MIT",
@@ -62,7 +62,7 @@
       "label": "Mirror / Handoff Check Schedule (cron)",
       "type": "string",
       "default": "*/5 * * * *",
-      "help_text": "5-field cron. The default checks every 5 minutes."
+      "help_text": "5-field cron in UTC. The default checks every 5 minutes. Save changes, then use Apply / Update Cron Schedule."
     },
     {
       "id": "tv_template",
@@ -110,7 +110,7 @@
     {
       "id": "run_now",
       "label": "Run Mirror / Handoff Check Now",
-      "description": "Run the same mirror and final-handoff pass used by the cron task.",
+      "description": "Run the same mirror and final-handoff pass used by the automatic plugin scheduler.",
       "button_label": "Run Now",
       "button_variant": "filled",
       "button_color": "blue"
@@ -118,7 +118,7 @@
     {
       "id": "apply_schedule",
       "label": "Apply / Update Cron Schedule",
-      "description": "Register or update the periodic mirror/handoff task in Celery Beat.",
+      "description": "Enable or update the plugin-owned scheduler. Upgrades automatically migrate and remove the legacy Celery Beat task.",
       "button_label": "Apply",
       "button_variant": "outline",
       "button_color": "blue"
@@ -126,7 +126,7 @@
     {
       "id": "schedule_status",
       "label": "Show Cron Status",
-      "description": "Show the registered cron expression and recent run state.",
+      "description": "Show the plugin-owned cron schedule and its recent run state.",
       "button_label": "Status",
       "button_variant": "outline"
     },
