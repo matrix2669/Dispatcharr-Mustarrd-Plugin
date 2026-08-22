@@ -18,7 +18,7 @@ The registry and release metadata live separately in:
 https://github.com/matrix2669/dispatcharr-plugins
 ```
 
-This repository contains only the plugin source and immutable version branches.
+This repository contains the plugin source. Immutable semantic tags preserve published versions.
 
 ## Source layout
 
@@ -86,7 +86,7 @@ For a new version:
 
 1. Update the plugin source and `plugin.json` version.
 2. Commit the release source.
-3. Pin an immutable `vX.Y.Z` branch at that commit.
+3. Create an immutable `vX.Y.Z-beta.N` test tag or `vX.Y.Z` completed tag at that commit.
 4. Update `dispatcharr-plugins/manifest.json` and `dispatcharr-plugins/plugins/mustarrd-dvr-handoff/manifest.json`.
 
-Dispatcharr will then detect the new version through the registry refresh/update flow.
+Dispatcharr will then detect the new version through the registry refresh/update flow. See `RELEASE.md` for the complete `main`/`dev` workflow.

@@ -1,11 +1,11 @@
 {
   "name": "Mustarrd DVR Handoff",
-  "version": "0.2.12",
+  "version": "0.2.13-beta.1",
   "description": "Mirrors Dispatcharr DVR recordings on catch-up channels to Mustarrd up to 72 hours ahead, then performs a final verified handoff before airtime.",
   "author": "matrix2669",
   "license": "MIT",
-  "repo_url": "https://github.com/matrix2669/Dispatcharr-Mustarrd-Plugin",
-  "help_url": "https://github.com/matrix2669/Dispatcharr-Mustarrd-Plugin",
+  "repo_url": "https://github.com/matrix2669/Dispatcharr-Mustarrd-DVR-Plugin",
+  "help_url": "https://github.com/matrix2669/Dispatcharr-Mustarrd-DVR-Plugin",
   "min_dispatcharr_version": "v0.29.0",
   "fields": [
     {

@@ -39,7 +39,7 @@ https://raw.githubusercontent.com/matrix2669/dispatcharr-plugins/main/manifest.j
 
 Then install **Mustarrd DVR Handoff** from the Plugin Hub.
 
-Plugin source and releases remain in `matrix2669/Dispatcharr-Mustarrd-Plugin`; registry/version metadata is maintained separately in `matrix2669/dispatcharr-plugins`.
+Plugin source and releases remain in `matrix2669/Dispatcharr-Mustarrd-DVR-Plugin`; registry/version metadata is maintained separately in `matrix2669/dispatcharr-plugins`.
 
 ## Mustarrd account
 
