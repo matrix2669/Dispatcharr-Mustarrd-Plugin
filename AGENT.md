@@ -6,7 +6,9 @@ This repository owns the **Mustarrd DVR Handoff** Dispatcharr plugin. The canoni
 
 The repository rename is intentionally limited to source-hosting identity. Preserve the Dispatcharr display name **Mustarrd DVR Handoff**, registry slug and source directory `mustarrd-dvr-handoff`, normalized installed key, scheduler state path, field IDs, job behavior, and runtime contracts.
 
-Review `DECISIONS.md`, `BRANCHES.md`, and `RELEASE.md` before changing the project.
+Review `DECISIONS.md`, `DEPENDENCIES.md`, `TODO.md`, `BRANCHES.md`, and `RELEASE.md` before changing the project.
+
+For significant changes, run the workspace project-bootstrap/history gate: search all available ChatGPT and Codex tasks, follow every pagination cursor for relevant tasks, review memory and Git history, and record reviewed, excluded, and unavailable sources. Do not treat the current conversation or a history summary as the complete record.
 
 ## Architecture and ownership
 
@@ -25,6 +27,11 @@ Review `DECISIONS.md`, `BRANCHES.md`, and `RELEASE.md` before changing the proje
 - Raw XMLTV season `-1` takes precedence over onscreen `S00` and maps to the airing year; a genuine `S00` without raw `-1` remains season zero.
 - Keep validation and dry-run paths non-destructive.
 - Do not mutate published tags or archives.
+- Preserve explicit padding derived from the Dispatcharr recording versus its original EPG window; do not substitute Mustarrd global defaults.
+- Manual-time recordings may use an exact synthetic window, but unmatched EPG-backed recordings remain in Dispatcharr.
+- Treat `razzamatazm/mustarrd` as the production dependency. Track the last reviewed upstream commit and every required API/data contract in `DEPENDENCIES.md`; never assume the fork and upstream expose identical field names.
+- If a required Mustarrd capability exists only in `matrix2669/mustarrd`, record the exact fork branch/commit and upstream PR. Do not call the plugin upstream-production-ready until the PR is merged or the dependency is removed/moved into this plugin.
+- A closed, unmerged, split, or superseded Mustarrd PR does not prove that its dependencies landed. Compare the original change set against current upstream capability by capability and keep production status at `dependency check required` until the comparison and live validation are complete.
 
 ## Branch and distribution workflow
 
@@ -41,9 +48,22 @@ Track every current branch in `BRANCHES.md`. Before deleting one, transfer user-
 
 Run the complete `tests/` suite, compile all plugin Python modules, parse `plugin.json`, verify version agreement, and inspect the exact tagged archive. Whenever the supported or deployed Dispatcharr version changes, validate the manifest and plugin contract against the matching official `Dispatcharr/Dispatcharr` revision before publication.
 
+Whenever the deployed Mustarrd version or upstream `main` changes, refresh `DEPENDENCIES.md`, compare all recorded contracts against current upstream, run the upstream-shaped compatibility tests, and perform a live dry-run before publication.
+
+Until `TODO.md` is complete, treat production readiness as blocked. Keep the checklist synchronized with dependency findings and upstream PR status.
+
+## Known pitfalls
+
+- Dispatcharr's reduced `ProgramData` omits raw XMLTV namespaces. Tests that inject `episode_xmltv_ns` directly do not validate the live integration; include the Mustarrd fresh-EPG enrichment path.
+- Dispatcharr 0.29 can load plugin Celery tasks after a prefork worker establishes its task registry. Do not restore the legacy Beat task or assume changing Celery queues solves registration timing.
+- Mustarrd padding is one shifted, extended catch-up request—not separate pre/post streams.
+- Previously mirrored schedules are not renamed after annual-season/template corrections; delete and recreate the affected Mustarrd schedule.
+- A mirrored count does not mean the Dispatcharr fallback was deleted; final handoff has additional safety checks.
+
 ## Future agent checklist
 
 - Read the project documentation and relevant history.
+- Record the actual history sources reviewed, exclusions, unavailable sources, and remaining uncertainty before drafting bootstrap documentation.
 - Confirm source, registry, and related-project state from fresh refs.
 - Preserve the fail-safe handoff and annual-season decisions.
 - Update the branch ledger before substantive work.

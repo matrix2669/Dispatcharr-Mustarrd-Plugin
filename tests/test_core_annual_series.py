@@ -85,6 +85,26 @@ class CoreAnnualSeriesIntegrationTests(unittest.TestCase):
             )],
         )
 
+    def test_restore_accepts_current_upstream_mustarrd_epg_contract(self):
+        program = {
+            "id": 8436484,
+            "title": "First Things First",
+            "start_time": "2026-08-14T19:00:00+00:00",
+            "season_number": 0,
+            "episode_number": 158,
+            "episode_onscreen": "S00E158",
+        }
+        client = FakeClient(entries=[{
+            "id": "8436484",
+            "episode_num_onscreen": "S00E158",
+            "episode_num_xmltv": "-1.157.",
+        }])
+
+        restored = CORE._restore_raw_episode_metadata(client, 1, "3310", program)
+
+        self.assertEqual(restored["season_number"], 2026)
+        self.assertEqual(restored["episode_xmltv_ns"], "-1.157.")
+
     def test_lookup_failure_preserves_explicit_special(self):
         program = {
             "id": 10,

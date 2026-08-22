@@ -7,10 +7,10 @@ Dispatcharr plugin that mirrors catch-up-capable DVR recordings into Mustarrd an
 Add this registry under **Plugins → Plugin Repositories**:
 
 ```text
-https://raw.githubusercontent.com/matrix2669/dispatcharr-plugins/main/manifest.json
+https://raw.githubusercontent.com/matrix2669/dispatcharr-plugins/dev/manifest.json
 ```
 
-Then install **Mustarrd DVR Handoff** from the Plugin Hub.
+Then install **Mustarrd DVR Handoff** from the Plugin Hub. The plugin is currently distributed through the development catalog for testing. The production `main` catalog is used only after explicit GitHub Release approval.
 
 The registry and release metadata live separately in:
 
@@ -78,6 +78,10 @@ Dispatcharr does not retain the raw XMLTV namespace in `ProgramData`, so the plu
 
 A dedicated Mustarrd download-only user is sufficient for normal plugin operation.
 
+The plugin accepts both current-upstream and historical-fork structured-guide field names. This is not yet a complete upstream-production compatibility determination: Mustarrd PR #408 was closed unmerged, and PRs #422–#424 contained only selected portions. `DEPENDENCIES.md` records the required comparison and current production gate.
+
+Production readiness is currently blocked on the dependency audit in `TODO.md`, including the complete #408 comparison, live upstream Mustarrd and Dispatcharr contract validation, and any focused upstream PRs the audit identifies.
+
 ## Publishing
 
 Plugin source/releases stay in this repository. Registry metadata is updated separately in `matrix2669/dispatcharr-plugins`.
@@ -90,3 +94,7 @@ For a new version:
 4. Update `dispatcharr-plugins/manifest.json` and `dispatcharr-plugins/plugins/mustarrd-dvr-handoff/manifest.json`.
 
 Dispatcharr will then detect the new version through the registry refresh/update flow. See `RELEASE.md` for the complete `main`/`dev` workflow.
+
+## Project history
+
+`DECISIONS.md` records the recovered rationale, failed approaches, related-project contracts, and the exact ChatGPT/Codex sources reviewed. `CHANGELOG.md` records the corrected version-by-version history. Future bootstrap reviews must follow the workspace history gate rather than relying only on the current conversation or code state.

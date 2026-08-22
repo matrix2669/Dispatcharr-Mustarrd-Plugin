@@ -50,6 +50,36 @@ class AnnualSeriesSeasonTests(unittest.TestCase):
         self.assertEqual(normalized["season_number"], 2026)
         self.assertNotIn("episode_xmltv_ns", dispatcharr_program)
 
+    def test_current_upstream_mustarrd_field_names_are_supported(self):
+        dispatcharr_program = {
+            "id": 8436484,
+            "title": "First Things First",
+            "start_time": "2026-08-14T19:00:00+00:00",
+            "start_timestamp": 1786734000,
+            "stop_timestamp": 1786741200,
+            "season_number": 0,
+            "episode_number": 158,
+            "episode_onscreen": "S00E158",
+        }
+        upstream_mustarrd_epg = [{
+            "id": "8436484",
+            "start_timestamp": 1786734000,
+            "stop_timestamp": 1786741200,
+            "season_number": 0,
+            "episode_number": 158,
+            "episode_num_onscreen": "S00E158",
+            "episode_num_xmltv": "-1.157.",
+        }]
+
+        enriched = enrich_from_mustarrd_epg(
+            dispatcharr_program,
+            upstream_mustarrd_epg,
+        )
+        normalized = normalize_annual_series_season(enriched)
+
+        self.assertEqual(enriched["episode_xmltv_ns"], "-1.157.")
+        self.assertEqual(normalized["season_number"], 2026)
+
     def test_real_dispatcharr_payload_is_enriched_from_first_things_first_ot_epg(self):
         dispatcharr_program = {
             "id": 8433457,

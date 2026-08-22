@@ -34,12 +34,20 @@ def _coerce_optional_int(value: Any) -> int | None:
 
 
 def _has_explicit_special_season(program: dict[str, Any]) -> bool:
-    onscreen = str(program.get("episode_onscreen") or "").strip()
+    onscreen = str(
+        program.get("episode_onscreen")
+        or program.get("episode_num_onscreen")
+        or ""
+    ).strip()
     return bool(onscreen and _EXPLICIT_SPECIAL_RE.search(onscreen))
 
 
 def _has_unknown_xmltv_season(program: dict[str, Any]) -> bool:
-    xmltv_ns = str(program.get("episode_xmltv_ns") or "").strip()
+    xmltv_ns = str(
+        program.get("episode_xmltv_ns")
+        or program.get("episode_num_xmltv")
+        or ""
+    ).strip()
     if not xmltv_ns:
         return False
     season_component = xmltv_ns.split(".", 1)[0].strip()
@@ -55,7 +63,11 @@ def needs_raw_xmltv_lookup(program: dict[str, Any]) -> bool:
         and episode is not None
         and episode > 0
         and _has_explicit_special_season(program)
-        and not str(program.get("episode_xmltv_ns") or "").strip()
+        and not str(
+            program.get("episode_xmltv_ns")
+            or program.get("episode_num_xmltv")
+            or ""
+        ).strip()
     )
 
 
@@ -91,14 +103,19 @@ def enrich_from_mustarrd_epg(
     if match is None:
         return program
 
-    raw_xmltv = str(match.get("episode_xmltv_ns") or "").strip()
+    raw_xmltv = str(
+        match.get("episode_xmltv_ns")
+        or match.get("episode_num_xmltv")
+        or ""
+    ).strip()
     if not raw_xmltv:
         return program
 
     updated = dict(program)
     updated["episode_xmltv_ns"] = raw_xmltv
-    if match.get("episode_onscreen"):
-        updated["episode_onscreen"] = match["episode_onscreen"]
+    onscreen = match.get("episode_onscreen") or match.get("episode_num_onscreen")
+    if onscreen:
+        updated["episode_onscreen"] = onscreen
     return updated
 
 
