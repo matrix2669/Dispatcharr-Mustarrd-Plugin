@@ -41,7 +41,7 @@ install_scheduler_hooks(_core)
 
 # Dispatcharr parses plugin.json during discovery. Leaving these empty makes the
 # manifest the single source of truth for the settings/action UI.
-_core.Plugin.version = "0.2.13-beta.1"
+_core.Plugin.version = "0.2.13-beta.2"
 _core.Plugin.fields = []
 _core.Plugin.actions = []
 
